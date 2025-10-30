@@ -1,63 +1,55 @@
-use std::io::{self, Write};
-
-fn read_score(prompt: &str) -> Option<f64> {
-    print!("{}", prompt);
-    io::stdout().flush().ok()?;
-    let mut s = String::new();
-    io::stdin().read_line(&mut s).ok()?;
-    let val: f64 = match s.trim().parse() {
-        Ok(v) => v,
-        Err(_) => {
-            eprintln!("Invalid numeric input for score.");
-            return None;
-        }
-    };
-    if val < 0.0 || val > 100.0 {
-        eprintln!("Invalid score: {}. Scores must be between 0 and 100.", val);
-        return None;
-    }
-    Some(val)
-}
+use std::io;
 
 fn main() {
-    // Read name
-    print!("Enter student name: ");
-    io::stdout().flush().ok();
+    // Ask for the student's name
+    println!("Enter student name:");
     let mut name = String::new();
-    if io::stdin().read_line(&mut name).is_err() {
-        eprintln!("Failed to read name.");
-        return;
-    }
-    let name = name.trim();
+    io::stdin().read_line(&mut name).expect("Failed to read name");
+    let name = name.trim(); // remove extra spaces or newline
+
     if name.is_empty() {
-        eprintln!("Name cannot be empty.");
+        println!("Name cannot be empty.");
         return;
     }
 
-    // Read three scores
-    let s1 = match read_score("Enter score 1: ") { Some(v) => v, None => return };
-    let s2 = match read_score("Enter score 2: ") { Some(v) => v, None => return };
-    let s3 = match read_score("Enter score 3: ") { Some(v) => v, None => return };
+    // Function to read a single score
+    fn get_score(number: u8) -> f64 {
+        loop {
+            println!("Enter score {} (0–100):", number);
+            let mut input = String::new();
+            io::stdin().read_line(&mut input).expect("Failed to read input");
+
+            // Try to change the input into a number
+            match input.trim().parse::<f64>() {
+                Ok(value) if value >= 0.0 && value <= 100.0 => return value,
+                _ => println!("Please enter a valid number between 0 and 100."),
+            }
+        }
+    }
+
+    // Get three scores
+    let score1 = get_score(1);
+    let score2 = get_score(2);
+    let score3 = get_score(3);
 
     // Calculate average
-    let avg = (s1 + s2 + s3) / 3.0;
-    let avg_str = format!("{:.2}", avg);
+    let average = (score1 + score2 + score3) / 3.0;
 
-    // Determine grade using if..else if..else
-    let grade = if avg >= 70.0 && avg <= 100.0 {
+    // Decide the grade
+    let grade = if average >= 70.0 {
         "A"
-    } else if avg >= 60.0 {
+    } else if average >= 60.0 {
         "B"
-    } else if avg >= 50.0 {
+    } else if average >= 50.0 {
         "C"
-    } else if avg >= 45.0 {
+    } else if average >= 45.0 {
         "D"
     } else {
         "F"
     };
 
-    // Output
-    println!("Student: {}", name);
-    println!("Average: {}", avg_str);
+    // Show result
+    println!("\nStudent: {}", name);
+    println!("Average: {:.2}", average);
     println!("Grade: {}", grade);
 }
